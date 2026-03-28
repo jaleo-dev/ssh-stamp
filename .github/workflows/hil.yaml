@@ -54,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.device.soc }}.tar.gz
-          path: samples/build-${{ matrix.device.soc }}.tar.gz
+          path: hil/samples/build-${{ matrix.device.soc }}.tar.gz
   hil-test:
     name: Running HIL Espressif target ${{ matrix.device.soc }}
     needs: upload-espressif-targets
