@@ -42,13 +42,15 @@ jobs:
           ldproxy: false
           version: 1.88.0.0  # bumped from 1.86.0.0 since darling, esp-hal, etc require >=1.88
 
-      - name: Build project
+      - name: Build ${{ matrix.device.soc }}
         run: cargo +${{ matrix.device.toolchain }} build-${{ matrix.device.soc }}
-      - name: Create build tarball
+        
+      - name: Create build tarball for  ${{ matrix.device.soc }}
+        if: ${{ !contains(fromJson('["esp32c2", "esp32c3", "esp32c5"]'), matrix.device.soc) }}
         run: |
           mkdir -p samples
           cd samples/
-          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/${{ matrix.device.toolchain }}/relese/ssh-stamp
+          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/riscv32imac-unknown-none-elf/relese/ssh-stamp
       - name: Upload tarball
         uses: actions/upload-artifact@v4
         with:
