@@ -1,5 +1,6 @@
 name: HIL Tests
-
+env:
+  ELF_FOLDER = "./samples"
 on:
   pull_request: # On production MUST be pull_request_target:
     branches:
@@ -48,9 +49,8 @@ jobs:
       - name: Create build tarball for  ${{ matrix.device.soc }}
         if: ${{ !contains(fromJson('["esp32c2", "esp32c3", "esp32c5"]'), matrix.device.soc) }}
         run: |
-          mkdir -p samples
-          cd samples/
-          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/riscv32imac-unknown-none-elf/release/ssh-stamp
+          mkdir -p hil/samples
+          tar czf hil/samples/build-${{ matrix.device.soc }}.tar.gz -C target/riscv32imac-unknown-none-elf/release/ssh-stamp
       - name: Upload tarball
         uses: actions/upload-artifact@v4
         with:
@@ -81,22 +81,22 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: hil-test
+        # working-directory: hil-test Ommited for simplicity
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          path: hil-test
+        # with:
+        #   path: hil-test
 
       - name: Download build tarball
         uses: actions/download-artifact@v4
         with:
           name: build-${{ matrix.device.soc }}.tar.gz
-          path: hil-test/samples/
+          path: hil/samples/
 
       - name: Untar
         run: |
-          cd samples/
+          cd hil/samples/
           tar xvf build-${{ matrix.device.soc }}.tar.gz
       # Stopping it here for now. Need to validate all these steps
