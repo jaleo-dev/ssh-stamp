@@ -50,7 +50,7 @@ jobs:
         run: |
           mkdir -p samples
           cd samples/
-          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/riscv32imac-unknown-none-elf/relese/ssh-stamp
+          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/riscv32imac-unknown-none-elf/release/ssh-stamp
       - name: Upload tarball
         uses: actions/upload-artifact@v4
         with:
