@@ -61,7 +61,7 @@ jobs:
     needs: upload-espressif-targets
     runs-on:
       group: hil
-      labels: [self-hosted, local-runner-test]
+      labels: [self-hosted, ssh-stamp]
     
     # environment: ready-for-hil
     strategy:
