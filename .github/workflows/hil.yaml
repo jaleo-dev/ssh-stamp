@@ -59,8 +59,11 @@ jobs:
   hil-test:
     name: Running HIL Espressif target ${{ matrix.device.soc }}
     needs: upload-espressif-targets
-    runs-on: [self-hosted, local-runner-test]
-    environment: ready-for-hil
+    runs-on:
+      group: hil
+      labels: [self-hosted, local-runner-test]
+    
+    # environment: ready-for-hil
     strategy:
       fail-fast: false
       matrix:
