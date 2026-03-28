@@ -49,7 +49,7 @@ jobs:
         if: ${{ !contains(fromJson('["esp32c2", "esp32c3", "esp32c5"]'), matrix.device.soc) }}
         run: |
           mkdir -p hil/samples
-          tar czf hil/samples/build-${{ matrix.device.soc }}.tar.gz -C target/riscv32imac-unknown-none-elf/release/ssh-stamp
+          tar czf $("pwd")/hil/samples/build-${{ matrix.device.soc }}.tar.gz -C target/riscv32imac-unknown-none-elf/release/ ssh-stamp
       - name: Upload tarball
         uses: actions/upload-artifact@v4
         with:
