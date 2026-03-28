@@ -1,0 +1,97 @@
+name: HIL Tests
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  upload-espressif-targets:
+    name: Uploading Espressif target ${{ matrix.device.soc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [
+            # # RISC-V devices:
+            # { soc: "esp32c2", toolchain: "stable" },
+            # { soc: "esp32c3", toolchain: "stable" },
+# #           { soc: "esp32c5", toolchain: "stable" },
+            { soc: "esp32c6", toolchain: "stable" },
+            # # Xtensa devices:
+            # { soc: "esp32", toolchain: "esp" },
+            # { soc: "esp32s2", toolchain: "esp" },
+            # { soc: "esp32s3", toolchain: "esp" },
+        ]
+    steps:
+      - name: Cache
+        uses: mozilla-actions/sccache-action@v0.0.7
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Rust toolchain for RISC-V
+        if: ${{ !contains(fromJson('["esp32", "esp32s2", "esp32s3"]'), matrix.device.soc) }}
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          target: riscv32imc-unknown-none-elf,riscv32imac-unknown-none-elf
+          toolchain: stable
+          components: rust-src, clippy, rustfmt
+      - name: Setup Rust toolchain for Xtensa
+        if: ${{ contains(fromJson('["esp32", "esp32s2", "esp32s3"]'), matrix.device.soc) }}
+        uses: esp-rs/xtensa-toolchain@v1.5
+        with:
+          ldproxy: false
+          version: 1.88.0.0  # bumped from 1.86.0.0 since darling, esp-hal, etc require >=1.88
+
+      - name: Build project
+        run: cargo +${{ matrix.device.toolchain }} build-${{ matrix.device.soc }}
+      - name: Create build tarball
+        run: |
+          mkdir -p samples
+          cd samples/
+          tar czf build-${{ matrix.device.soc }}.tar.gz ../target/${{ matrix.device.toolchain }}/relese/ssh-stamp
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.device.soc }}.tar.gz
+          path: samples/build-${{ matrix.device.soc }}.tar.gz
+  hil-test:
+    name: Running HIL Espressif target ${{ matrix.device.soc }}
+    needs: upload-espressif-targets
+    runs-on: [self-hosted, local-runner-test]
+    environment: ready-for-hil
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [
+            # # RISC-V devices:
+            # { soc: "esp32c2", toolchain: "stable" },
+            # { soc: "esp32c3", toolchain: "stable" },
+# #           { soc: "esp32c5", toolchain: "stable" },
+            { soc: "esp32c6", toolchain: "stable" },
+            # # Xtensa devices:
+            # { soc: "esp32", toolchain: "esp" },
+            # { soc: "esp32s2", toolchain: "esp" },
+            # { soc: "esp32s3", toolchain: "esp" },
+        ]
+    defaults:
+      run:
+        shell: bash
+        working-directory: hil-test
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          path: hil-test
+
+      - name: Download build tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.device.soc }}.tar.gz
+          path: hil-test/samples/
+
+      - name: Untar
+        run: |
+          cd samples/
+          tar xvf build-${{ matrix.device.soc }}.tar.gz
+      # Stopping it here for now. Need to validate all these steps
