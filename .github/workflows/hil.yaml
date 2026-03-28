@@ -1,6 +1,5 @@
 name: HIL Tests
-env:
-  ELF_FOLDER = "./samples"
+
 on:
   pull_request: # On production MUST be pull_request_target:
     branches:
